@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Penalty Dashboard | Global Genesis</title>
+
+    <!-- Favicons -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="icon" sizes="192x192" href="{{ url_for('static', filename='android-chrome-192x192.png') }}">
+    <link rel="icon" sizes="512x512" href="{{ url_for('static', filename='android-chrome-512x512.png') }}">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a5fb4;
+            --primary-dark: #103a75;
+            --secondary: #3584e4;
+            --accent: #f5c211;
+            --danger: #e01b24;
+            --success: #33d17a;
+            --warning: #f8e45c;
+            --background: #f6f5f4;
+            --card-bg: #ffffff;
+            --text: #2e3436;
+            --text-light: #77767b;
+            --border: #cdcdcd;
+            --shadow: rgba(0,0,0,0.1);
+            --radius: 8px;
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            font-size: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            position: relative;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background-color: var(--card-bg);
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(53, 132, 228, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px auto;
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: var(--text);
+        }
+
+        .btn-accent:hover {
+            background-color: #e5b210;
+        }
+
+        .filter-info {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: rgba(53, 132, 228, 0.1);
+            border-radius: var(--radius);
+            border-left: 4px solid var(--secondary);
+            font-size: 0.9rem;
+        }
+
+        .filter-info strong {
+            color: var(--primary);
+        }
+
+        .filter-info em {
+            font-style: normal;
+            background-color: rgba(53, 132, 228, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 600px;
+            background-color: var(--card-bg);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-align: center;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        tbody tr {
+            transition: var(--transition);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(53, 132, 228, 0.05);
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(246, 245, 244, 0.5);
+        }
+
+        tfoot tr {
+            background-color: var(--primary-dark);
+            color: white;
+            font-weight: 700;
+        }
+
+        .sort-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sort-arrow {
+            margin-left: 5px;
+            opacity: 0.7;
+            font-size: 10px;
+            transition: var(--transition);
+        }
+
+        
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .table-container {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* For smaller screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .form-group {
+                min-width: 100%;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="logo-container">
+        <!-- You can add your logo here -->
+        <h1>Penalty Dashboard</h1>
+    </div>
+
+    <div class="card">
+        <form method="POST" id="searchForm" class="search-form">
+            <div class="form-group">
+                <label for="company">Company</label>
+                <select name="company" id="company">
+                    {% for c in companies %}
+                        <option value="{{ c }}" {% if c == company %}selected{% endif %}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="operator_id">Operator ID</label>
+                <input type="text" id="operator_id" name="operator_id" placeholder="Enter ID" value="{{ operator_id }}">
+            </div>
+            <div class="form-group">
+                <label for="operator_name">Operator Name</label>
+                <input type="text" id="operator_name" name="operator_name" placeholder="Enter name" value="{{ operator_name }}">
+            </div>
+            <div class="button-group">
+                <button type="submit" class="btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    Search
+                </button>
+                <button type="button" class="btn-secondary" onclick="window.location.href='/'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                    Reset
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if company or operator_id or operator_name %}
+    <div class="filter-info">
+        <strong>Currently Filtering by:</strong>
+        Company: <em>{{ company }}</em>
+        {% if operator_id %} | Operator ID: <em>{{ operator_id }}</em>{% endif %}
+        {% if operator_name %} | Operator Name: <em>{{ operator_name }}</em>{% endif %}
+    </div>
+    {% endif %}
+
+    <div class="button-group">
+        <button class="btn-accent" onclick="exportToExcel()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            Export Excel
+        </button>
+        <button class="btn-secondary" onclick="printData()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print / PDF
+        </button>
+        <button class="btn-primary" onclick="window.location.href='/overall-penalty'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            Overall Penalty Summary
+        </button>
+        <button class="btn-primary" onclick="window.location.href='/kits'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M16 3v4a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3"></path></svg>
+            Kits Inventory
+        </button>
+    </div>
+
+    <div class="table-container">
+        {% if tables|length > 0 %}
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    {% for col in column_names %}
+                        <th>
+                            <div class="sort-header" data-column="{{ loop.index0 }}">
+                                {{ col }}
+                                <span class="sort-arrow"></span>
+                            </div>
+                        </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in tables %}
+                    <tr>
+                        {% for col in column_names %}
+                            <td>
+                                {% if row[col] is none or row[col] == '' %}
+                                    &nbsp;
+                                {% elif row[col] is number %}
+                                    {{ row[col]|int }}
+                                {% else %}
+                                    {{ row[col] }}
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    {% for col in column_names %}
+                        <td>
+                            {% if col in totals %}
+                                {{ totals[col]|int if totals[col] is number else totals[col] }}
+                            {% else %}
+                                &nbsp;
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">📊</div>
+            <h3>No data found</h3>
+            <p>Try different search criteria or reset filters</p>
+        </div>
+        {% endif %}
+    </div>
+
+<script>
+// Table sorting functionality
+function makeTableSortable(tableId) {
+    const table = document.getElementById(tableId);
+    if (!table) {
+        return;
+    }
+
+    const headers = table.querySelectorAll('.sort-header');
+    const tbody = table.tBodies[0];
+
+    headers.forEach((header) => {
+        const columnIndex = parseInt(header.dataset.column);
+        const arrow = header.querySelector('.sort-arrow');
+        
+        header.addEventListener('click', () => {
+            // Show loading indicator
+            document.querySelector('.loading').style.display = 'flex';
+            
+            setTimeout(() => {
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+                const currentDir = header.getAttribute('data-sort-dir') || 'asc';
+                const newDir = currentDir === 'asc' ? 'desc' : 'asc';
+
+                // Reset arrows and direction for other headers
+                headers.forEach((h) => {
+                    h.removeAttribute('data-sort-dir');
+                    const a = h.querySelector('.sort-arrow');
+                    if (a) a.innerHTML = '';
+                });
+
+                header.setAttribute('data-sort-dir', newDir);
+                arrow.innerHTML = newDir === 'asc' ? ' ▲' : ' ▼';
+
+                // Determine if the column is numeric
+                let isNumeric = false;
+                if (rows.length > 0 && rows[0].cells[columnIndex]) {
+                    const firstCellData = rows[0].cells[columnIndex].innerText.trim();
+                    const potentialNum = parseFloat(firstCellData.replace(/,/g, ''));
+                    isNumeric = !isNaN(potentialNum) && isFinite(potentialNum);
+                }
+                
+                rows.sort((a, b) => {
+                    let valA = a.cells[columnIndex].innerText.trim();
+                    let valB = b.cells[columnIndex].innerText.trim();
+
+                    if (isNumeric) {
+                        valA = parseFloat(valA.replace(/,/g, '')) || 0;
+                        valB = parseFloat(valB.replace(/,/g, '')) || 0;
+                    } else {
+                        valA = valA.toLowerCase();
+                        valB = valB.toLowerCase();
+                    }
+
+                    if (valA < valB) {
+                        return newDir === 'asc' ? -1 : 1;
+                    }
+                    if (valA > valB) {
+                        return newDir === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+
+                // Remove all rows
+                while (tbody.firstChild) {
+                    tbody.removeChild(tbody.firstChild);
+                }
+
+                // Append sorted rows
+                rows.forEach(row => tbody.appendChild(row));
+                
+                // Hide loading indicator
+                document.querySelector('.loading').style.display = 'none';
+            }, 200); // Short timeout to show loading indicator
+        });
+    });
+}
+
+// Load Excel export function
+function exportToExcel() {
+    window.location.href = '/export/excel?operator_id={{ operator_id }}&operator_name={{ operator_name }}&company={{ company }}';
+}
+
+// Print function with basic print styles
+function printData() {
+    const printContents = document.querySelector('.table-container').innerHTML;
+    const originalContents = document.body.innerHTML;
+    
+    document.body.innerHTML = `
+        <style>
+            body { font-family: Arial, sans-serif; }
+            h1 { text-align: center; color: #1a5fb4; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th { background-color: #1a5fb4; color: white; text-align: center; padding: 8px; }
+            td { padding: 8px; text-align: center; border-bottom: 1px solid #ddd; }
+            tfoot tr { background-color: #103a75; color: white; font-weight: bold; }
+            .print-header { text-align: center; margin-bottom: 20px; }
+            .print-info { margin-bottom: 15px; font-size: 0.9rem; }
+            @media print {
+                @page { size: landscape; }
+            }
+        </style>
+        <div class="print-header">
+            <h1>Penalty Dashboard</h1>
+            <div class="print-info">
+                <strong>Company:</strong> {{ company }}
+                {% if operator_id %} | <strong>Operator ID:</strong> {{ operator_id }}{% endif %}
+                {% if operator_name %} | <strong>Operator Name:</strong> {{ operator_name }}{% endif %}
+                <br>
+                <strong>Date:</strong> ${new Date().toLocaleDateString()}
+            </div>
+        </div>
+        ${printContents}
+    `;
+    
+    window.print();
+    document.body.innerHTML = originalContents;
+    
+    // Reinitialize JavaScript functionality after printing
+    document.addEventListener('DOMContentLoaded', initializeApp);
+}
+
+// Show loading when form is submitted
+document.getElementById('searchForm').addEventListener('submit', function() {
+    document.querySelector('.loading').style.display = 'flex';
+});
+
+// Initialize all functionality
+function initializeApp() {
+    if (document.getElementById('dataTable')) {
+        makeTableSortable('dataTable');
+    }
+    // Pagination removed
+    // Handle clicks on navigation links
+    document.querySelectorAll('a, button[onclick^="window.location"]').forEach(el => {
+        if (el.getAttribute('onclick')?.includes('window.location')) return;
+        
+        el.addEventListener('click', function(e) {
+            if (this.getAttribute('href') && !this.getAttribute('href').startsWith('#')) {
+                document.querySelector('.loading').style.display = 'flex';
+            }
+        });
+    });
+}
+
+// Hide loading indicator when page is fully loaded
+window.addEventListener('load', function() {
+    document.querySelector('.loading').style.display = 'none';
+});
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', initializeApp);
+</script>
+</body>
+</html>

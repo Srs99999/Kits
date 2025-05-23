@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Inventory of Kits</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .inventory-table th {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .inventory-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .inventory-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .inventory-table tbody tr:nth-child(even) {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .editable {
+            background: transparent;
+            border: 1px solid transparent;
+            padding: 8px;
+            border-radius: 4px;
+            width: 100%;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .editable:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 11px;
+            min-width: auto;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active { background: #28a745; }
+        .status-inactive { background: #dc3545; }
+        .status-maintenance { background: #ffc107; }
+
+        .print-section {
+            display: none;
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            .print-section, .print-section * { visibility: visible; }
+            .print-section { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+            
+            .search-filters {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                justify-content: stretch;
+            }
+            
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success { background: #28a745; }
+        .notification.error { background: #dc3545; }
+        .notification.info { background: #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎒 Master Inventory of Kits</h1>
+            <p>Comprehensive Kit Management System</p>
+        </div>
+
+        <div class="controls">
+            <div class="search-filters">
+                <div class="form-group">
+                    <label for="searchKitNo">🔍 Search by Kit No</label>
+                    <input type="text" id="searchKitNo" placeholder="Enter Kit Number">
+                </div>
+                <div class="form-group">
+                    <label for="searchStationId">🏢 Search by Station ID</label>
+                    <input type="text" id="searchStationId" placeholder="Enter Station ID">
+                </div>
+                <div class="form-group">
+                    <label for="searchOperator">👤 Search by Operator Name</label>
+                    <input type="text" id="searchOperator" placeholder="Enter Operator Name">
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="addNewKit()">➕ Add New Kit</button>
+                <button class="btn btn-success" onclick="exportToExcel()">📊 Export Excel</button>
+                <button class="btn btn-info" onclick="exportToPDF()">📄 Export PDF</button>
+                <button class="btn btn-warning" onclick="printInventory()">🖨️ Print Inventory</button>
+                <button class="btn btn-danger" onclick="clearFilters()">🔄 Clear Filters</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="inventory-table" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>S No</th>
+                        <th>Kit No</th>
+                        <th>Station ID</th>
+                        <th>Laptop S/No</th>
+                        <th>Machine ID</th>
+                        <th>Printer</th>
+                        <th>Fingerprint</th>
+                        <th>Iris</th>
+                        <th>Camera</th>
+                        <th>USB Hub</th>
+                        <th>Spike</th>
+                        <th>GPS device</th>
+                        <th>White Background</th>
+                        <th>Lamp & Bulb</th>
+                        <th>Operator Name</th>
+                        <th>User Code As Per Credentials</th>
+                        <th>Aadhaar Number</th>
+                        <th>Mobile Number</th>
+                        <th>Cheque</th>
+                        <th>Nseit Certificate</th>
+                        <th>PVC</th>
+                        <th>Aadhaar</th>
+                        <th>Pan</th>
+                        <th>Declaration</th>
+                        <th>Education Certificate</th>
+                        <th>Agreements</th>
+                        <th>District</th>
+                        <th>Date</th>
+                        <th>Zonal coordinator</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryBody">
+                    <!-- Data rows will be loaded here by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Kit Modal -->
+    <div id="kitModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add New Kit</h2>
+            <form id="kitForm" class="form-grid">
+                <div class="form-group">
+                    <label for="kitNo">Kit No *</label>
+                    <input type="text" id="kitNo" required>
+                </div>
+                <div class="form-group">
+                    <label for="stationId">Station ID</label>
+                    <input type="text" id="stationId">
+                </div>
+                <div class="form-group">
+                    <label for="laptopSNo">Laptop S/No</label>
+                    <input type="text" id="laptopSNo">
+                </div>
+                <div class="form-group">
+                    <label for="machineId">Machine ID</label>
+                    <input type="text" id="machineId">
+                </div>
+                <div class="form-group">
+                    <label for="printer">Printer</label>
+                    <input type="text" id="printer">
+                </div>
+                <div class="form-group">
+                    <label for="fingerprint">Fingerprint</label>
+                    <input type="text" id="fingerprint">
+                </div>
+                <div class="form-group">
+                    <label for="iris">Iris</label>
+                    <input type="text" id="iris">
+                </div>
+                <div class="form-group">
+                    <label for="camera">Camera</label>
+                    <input type="text" id="camera">
+                </div>
+                <div class="form-group">
+                    <label for="usbHub">USB Hub</label>
+                    <input type="text" id="usbHub">
+                </div>
+                <div class="form-group">
+                    <label for="spike">Spike</label>
+                    <input type="text" id="spike">
+                </div>
+                <div class="form-group">
+                    <label for="gpsDevice">GPS Device</label>
+                    <input type="text" id="gpsDevice">
+                </div>
+                <div class="form-group">
+                    <label for="whiteBackground">White Background</label>
+                    <input type="text" id="whiteBackground">
+                </div>
+                <div class="form-group">
+                    <label for="lampBulb">Lamp & Bulb</label>
+                    <input type="text" id="lampBulb">
+                </div>
+                <div class="form-group">
+                    <label for="operatorName">Operator Name</label>
+                    <input type="text" id="operatorName">
+                </div>
+                <div class="form-group">
+                    <label for="userCode">User Code As Per Credentials</label>
+                    <input type="text" id="userCode">
+                </div>
+                <div class="form-group">
+                    <label for="aadhaarNumber">Aadhaar Number</label>
+                    <input type="text" id="aadhaarNumber">
+                </div>
+                <div class="form-group">
+                    <label for="mobileNumber">Mobile Number</label>
+                    <input type="text" id="mobileNumber">
+                </div>
+                <div class="form-group">
+                    <label for="cheque">Cheque</label>
+                    <input type="text" id="cheque">
+                </div>
+                <div class="form-group">
+                    <label for="nseitCertificate">Nseit Certificate</label>
+                    <input type="text" id="nseitCertificate">
+                </div>
+                <div class="form-group">
+                    <label for="pvc">PVC</label>
+                    <input type="text" id="pvc">
+                </div>
+                <div class="form-group">
+                    <label for="aadhaar">Aadhaar</label>
+                    <input type="text" id="aadhaar">
+                </div>
+                <div class="form-group">
+                    <label for="pan">Pan</label>
+                    <input type="text" id="pan">
+                </div>
+                <div class="form-group">
+                    <label for="declaration">Declaration</label>
+                    <input type="text" id="declaration">
+                </div>
+                <div class="form-group">
+                    <label for="educationCertificate">Education Certificate</label>
+                    <input type="text" id="educationCertificate">
+                </div>
+                <div class="form-group">
+                    <label for="agreements">Agreements</label>
+                    <input type="text" id="agreements">
+                </div>
+                <div class="form-group">
+                    <label for="district">District</label>
+                    <input type="text" id="district">
+                </div>
+                <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="text" id="date">
+                </div>
+                <div class="form-group">
+                    <label for="zonalCoordinator">Zonal coordinator</label>
+                    <input type="text" id="zonalCoordinator">
+                </div>
+            </form>
+            <div style="margin-top: 30px; text-align: center;">
+                <button class="btn btn-success" onclick="saveKit()">💾 Save Kit</button>
+                <button class="btn btn-danger" onclick="closeModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Section -->
+    <div class="print-section" id="printSection">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1>Kit Handover Acknowledgement</h1>
+            <p>Date: <span id="printDate"></span></p>
+        </div>
+        <div id="printContent"></div>
+        <div style="margin-top: 50px;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="width: 50%; padding: 20px; text-align: center; border-top: 1px solid #000;">
+                        <strong>Operator Signature</strong>
+                    </td>
+                    <td style="width: 50%; padding: 20px; text-align: center; border-top: 1px solid #000;">
+                        <strong>Authority Signature</strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        
+        let editingIndex = -1;
+
+        function loadInventoryTable() {
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = '';
+
+            kitsData.forEach((kit, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${kit.sNo || ''}</td>
+                    <td>${kit.kitNo || ''}</td>
+                    <td>${kit.stationId || ''}</td>
+                    <td>${kit.laptopSNo || ''}</td>
+                    <td>${kit.machineId || ''}</td>
+                    <td>${kit.printer || ''}</td>
+                    <td>${kit.fingerprint || ''}</td>
+                    <td>${kit.iris || ''}</td>
+                    <td>${kit.camera || ''}</td>
+                    <td>${kit.usbHub || ''}</td>
+                    <td>${kit.spike || ''}</td>
+                    <td>${kit.gpsDevice || ''}</td>
+                    <td>${kit.whiteBackground || ''}</td>
+                    <td>${kit.lampBulb || ''}</td>
+                    <td>${kit.operatorName || ''}</td>
+                    <td>${kit.userCode || ''}</td>
+                    <td>${kit.aadhaarNumber || ''}</td>
+                    <td>${kit.mobileNumber || ''}</td>
+                    <td>${kit.cheque || ''}</td>
+                    <td>${kit.nseitCertificate || ''}</td>
+                    <td>${kit.pvc || ''}</td>
+                    <td>${kit.aadhaar || ''}</td>
+                    <td>${kit.pan || ''}</td>
+                    <td>${kit.declaration || ''}</td>
+                    <td>${kit.educationCertificate || ''}</td>
+                    <td>${kit.agreements || ''}</td>
+                    <td>${kit.district || ''}</td>
+                    <td>${kit.date || ''}</td>
+                    <td>${kit.zonalCoordinator || ''}</td>
+                    <td class="row-actions">
+                        <button class="btn btn-info btn-sm" onclick="editKit(${index})">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteKit(${index})">🗑️ Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function addNewKit() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add New Kit';
+            document.getElementById('kitForm').reset();
+            document.getElementById('kitModal').style.display = 'block';
+        }
+
+        function editKit(index) {
+            editingIndex = index;
+            const kit = kitsData[index];
+            document.getElementById('modalTitle').textContent = 'Edit Kit';
+            // Populate form fields
+            document.getElementById('kitNo').value = kit.kitNo || '';
+            document.getElementById('stationId').value = kit.stationId || '';
+            document.getElementById('laptopSNo').value = kit.laptopSNo || '';
+            document.getElementById('machineId').value = kit.machineId || '';
+            document.getElementById('printer').value = kit.printer || '';
+            document.getElementById('fingerprint').value = kit.fingerprint || '';
+            document.getElementById('iris').value = kit.iris || '';
+            document.getElementById('camera').value = kit.camera || '';
+            document.getElementById('usbHub').value = kit.usbHub || '';
+            document.getElementById('spike').value = kit.spike || '';
+            document.getElementById('gpsDevice').value = kit.gpsDevice || '';
+            document.getElementById('whiteBackground').value = kit.whiteBackground || '';
+            document.getElementById('lampBulb').value = kit.lampBulb || '';
+            document.getElementById('operatorName').value = kit.operatorName || '';
+            document.getElementById('userCode').value = kit.userCode || '';
+            document.getElementById('aadhaarNumber').value = kit.aadhaarNumber || '';
+            document.getElementById('mobileNumber').value = kit.mobileNumber || '';
+            document.getElementById('cheque').value = kit.cheque || '';
+            document.getElementById('nseitCertificate').value = kit.nseitCertificate || '';
+            document.getElementById('pvc').value = kit.pvc || '';
+            document.getElementById('aadhaar').value = kit.aadhaar || '';
+            document.getElementById('pan').value = kit.pan || '';
+            document.getElementById('declaration').value = kit.declaration || '';
+            document.getElementById('educationCertificate').value = kit.educationCertificate || '';
+            document.getElementById('agreements').value = kit.agreements || '';
+            document.getElementById('district').value = kit.district || '';
+            document.getElementById('date').value = kit.date || '';
+            document.getElementById('zonalCoordinator').value = kit.zonalCoordinator || '';
+            document.getElementById('kitModal').style.display = 'block';
+        }
+
+        // Example: Load kits data
+        async function loadKitsFromAPI() {
+            try {
+                const response = await fetch('/api/kits');
+                const result = await response.json();
+                if (result.status === 'success') {
+                    kitsData = result.data;
+                    loadInventoryTable();
+                }
+            } catch (error) {
+                console.error('Error loading kits:', error);
+            }
+        }
+
+        // Example: Save kit
+        async function saveKitToAPI(kitData) {
+            try {
+                const response = await fetch('/api/kits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(kitData)
+                });
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Error saving kit:', error);
+                return { status: 'error', message: 'Network error' };
+            }
+        }
+
+        async function saveKit() {
+            if (!validateForm()) {
+                return;
+            }
+            const formData = {
+                kitNo: document.getElementById('kitNo').value,
+                stationId: document.getElementById('stationId').value,
+                laptopSNo: document.getElementById('laptopSNo').value,
+                machineId: document.getElementById('machineId').value,
+                printer: document.getElementById('printer').value,
+                fingerprint: document.getElementById('fingerprint').value,
+                iris: document.getElementById('iris').value,
+                camera: document.getElementById('camera').value,
+                usbHub: document.getElementById('usbHub').value,
+                spike: document.getElementById('spike').value,
+                gpsDevice: document.getElementById('gpsDevice').value,
+                whiteBackground: document.getElementById('whiteBackground').value,
+                lampBulb: document.getElementById('lampBulb').value,
+                operatorName: document.getElementById('operatorName').value,
+                userCode: document.getElementById('userCode').value,
+                aadhaarNumber: document.getElementById('aadhaarNumber').value,
+                mobileNumber: document.getElementById('mobileNumber').value,
+                cheque: document.getElementById('cheque').value,
+                nseitCertificate: document.getElementById('nseitCertificate').value,
+                pvc: document.getElementById('pvc').value,
+                aadhaar: document.getElementById('aadhaar').value,
+                pan: document.getElementById('pan').value,
+                declaration: document.getElementById('declaration').value,
+                educationCertificate: document.getElementById('educationCertificate').value,
+                agreements: document.getElementById('agreements').value,
+                district: document.getElementById('district').value,
+                date: document.getElementById('date').value,
+                zonalCoordinator: document.getElementById('zonalCoordinator').value
+            };
+            // If editing, send originalKitNo and isUpdate flag
+            if (editingIndex !== -1) {
+                formData.originalKitNo = kitsData[editingIndex].kitNo;
+                formData.isUpdate = true;
+            }
+            // Save to backend
+            const result = await saveKitToAPI(formData);
+            if (result.status === 'success') {
+                showNotification('Kit saved to Excel!', 'success');
+                closeModal();
+                await loadKitsFromAPI();
+                // Optionally print acknowledgement
+                if (confirm('Kit saved successfully! Would you like to generate handover acknowledgement?')) {
+                    if (editingIndex === -1) {
+                        printKit(kitsData.length - 1);
+                    } else {
+                        printKit(editingIndex);
+                    }
+                }
+            } else {
+                showNotification(result.message || 'Error saving kit', 'error');
+            }
+        }
+
+        function deleteKit(index) {
+            if (confirm('Are you sure you want to delete this kit?')) {
+                kitsData.splice(index, 1);
+                // Reorder serial numbers
+                kitsData.forEach((kit, i) => kit.sNo = i + 1);
+                loadInventoryTable();
+                showNotification('Kit deleted successfully!', 'success');
+            }
+        }
+
+        function printKit(index) {
+            const kit = kitsData[index];
+            generatePrintContent(kit);
+            window.print();
+        }
+
+        function exportKitPDF(index) {
+            const kit = kitsData[index];
+            generatePrintContent(kit);
+            showNotification('PDF generation feature would be implemented with a PDF library', 'info');
+        }
+
+        function generatePrintContent(kit) {
+            document.getElementById('printDate').textContent = new Date().toLocaleDateString();
+            const printContent = document.getElementById('printContent');
+            printContent.innerHTML = `
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Kit No:</td><td style="padding: 10px; border: 1px solid #000;">${kit.kitNo}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Station ID:</td><td style="padding: 10px; border: 1px solid #000;">${kit.stationId}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Laptop S/No:</td><td style="padding: 10px; border: 1px solid #000;">${kit.laptopSNo}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Machine ID:</td><td style="padding: 10px; border: 1px solid #000;">${kit.machineId}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Printer:</td><td style="padding: 10px; border: 1px solid #000;">${kit.printer}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Finger Print:</td><td style="padding: 10px; border: 1px solid #000;">${kit.fingerPrint}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Iris:</td><td style="padding: 10px; border: 1px solid #000;">${kit.iris}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Camera:</td><td style="padding: 10px; border: 1px solid #000;">${kit.camera}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">USB Hub:</td><td style="padding: 10px; border: 1px solid #000;">${kit.usbHub}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Spike:</td><td style="padding: 10px; border: 1px solid #000;">${kit.spike}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">GPS Device:</td><td style="padding: 10px; border: 1px solid #000;">${kit.gpsDevice}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">White Background:</td><td style="padding: 10px; border: 1px solid #000;">${kit.whiteBackground}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Lamp & Bulb:</td><td style="padding: 10px; border: 1px solid #000;">${kit.lampBulb}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Operator Name:</td><td style="padding: 10px; border: 1px solid #000;">${kit.operatorName}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">User Code:</td><td style="padding: 10px; border: 1px solid #000;">${kit.userCode}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Aadhaar Number:</td><td style="padding: 10px; border: 1px solid #000;">${kit.aadhaarNumber}</td></tr>
+                    <tr><td style="padding: 10px; border: 1px solid #000; font-weight: bold;">Mobile Number:</td><td style="padding: 10px; border: 1px solid #000;">${kit.mobileNumber}</td></tr>
+                </table>
+            `;
+        }
+
+        function exportToExcel() {
+            // Convert data to CSV format
+            const headers = ['S No', 'Kit No', 'Station ID', 'Laptop S/No', 'Machine ID', 'Printer', 'Finger Print', 'Iris', 'Camera', 'USB Hub', 'Spike', 'GPS Device', 'White Background', 'Lamp & Bulb', 'Operator Name', 'User Code', 'Aadhaar Number', 'Mobile Number'];
+            const csvContent = [
+                headers.join(','),
+                ...kitsData.map(kit => [
+                    kit.sNo, kit.kitNo, kit.stationId, kit.laptopSNo, kit.machineId,
+                    kit.printer, kit.fingerPrint, kit.iris, kit.camera, kit.usbHub,
+                    kit.spike, kit.gpsDevice, kit.whiteBackground, kit.lampBulb,
+                    kit.operatorName, kit.userCode, kit.aadhaarNumber, kit.mobileNumber
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'kits_inventory.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('Inventory exported to CSV successfully!', 'success');
+        }
+
+        function exportToPDF() {
+            showNotification('PDF export feature would be implemented with jsPDF library', 'info');
+        }
+
+        function printInventory() {
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <html>
+                <head>
+                    <title>Kits Inventory Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { text-align: center; color: #2c3e50; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10px; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .print-date { text-align: center; margin-bottom: 20px; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Master Inventory of Kits</h1>
+                    <div class="print-date">Generated on: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S No</th><th>Kit No</th><th>Station ID</th><th>Laptop S/No</th>
+                                <th>Machine ID</th><th>Printer</th><th>Finger Print</th><th>Iris</th>
+                                <th>Camera</th><th>USB Hub</th><th>Spike</th><th>GPS Device</th>
+                                <th>White Background</th><th>Lamp & Bulb</th><th>Operator Name</th>
+                                <th>User Code</th><th>Aadhaar Number</th><th>Mobile Number</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${kitsData.map(kit => `
+                                <tr>
+                                    <td>${kit.sNo}</td><td>${kit.kitNo}</td><td>${kit.stationId}</td>
+                                    <td>${kit.laptopSNo}</td><td>${kit.machineId}</td><td>${kit.printer}</td>
+                                    <td>${kit.fingerPrint}</td><td>${kit.iris}</td><td>${kit.camera}</td>
+                                    <td>${kit.usbHub}</td><td>${kit.spike}</td><td>${kit.gpsDevice}</td>
+                                    <td>${kit.whiteBackground}</td><td>${kit.lampBulb}</td><td>${kit.operatorName}</td>
+                                    <td>${kit.userCode}</td><td>${kit.aadhaarNumber}</td><td>${kit.mobileNumber}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 50px; text-align: center;">
+                        <p>Total Kits: ${kitsData.length}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        }
+
+        function clearFilters() {
+            document.getElementById('searchKitNo').value = '';
+            document.getElementById('searchStationId').value = '';
+            document.getElementById('searchOperator').value = '';
+            loadInventoryTable();
+            showNotification('Filters cleared!', 'info');
+        }
+
+        function filterTable() {
+            const kitNoFilter = document.getElementById('searchKitNo').value.toLowerCase();
+            const stationIdFilter = document.getElementById('searchStationId').value.toLowerCase();
+            const operatorFilter = document.getElementById('searchOperator').value.toLowerCase();
+
+            const filteredData = kitsData.filter(kit => {
+                const matchesKitNo = !kitNoFilter || kit.kitNo.toLowerCase().includes(kitNoFilter);
+                const matchesStationId = !stationIdFilter || kit.stationId.toLowerCase().includes(stationIdFilter);
+                const matchesOperator = !operatorFilter || kit.operatorName.toLowerCase().includes(operatorFilter);
+                
+                return matchesKitNo && matchesStationId && matchesOperator;
+            });
+
+            displayFilteredData(filteredData);
+        }
+
+        function displayFilteredData(data) {
+            const tbody = document.getElementById('inventoryBody');
+            tbody.innerHTML = '';
+
+            data.forEach((kit, index) => {
+                const originalIndex = kitsData.findIndex(k => k.kitNo === kit.kitNo);
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${kit.sNo}</td>
+                    <td>${kit.kitNo}</td>
+                    <td>${kit.stationId}</td>
+                    <td>${kit.laptopSNo}</td>
+                    <td>${kit.machineId}</td>
+                    <td>${kit.printer}</td>
+                    <td>${kit.fingerprint}</td>
+                    <td>${kit.iris}</td>
+                    <td>${kit.camera}</td>
+                    <td>${kit.usbHub}</td>
+                    <td>${kit.spike}</td>
+                    <td>${kit.gpsDevice}</td>
+                    <td>${kit.whiteBackground}</td>
+                    <td>${kit.lampBulb}</td>
+                    <td>${kit.operatorName}</td>
+                    <td>${kit.userCode}</td>
+                    <td>${kit.aadhaarNumber}</td>
+                    <td>${kit.mobileNumber}</td>
+                    <td class="row-actions">
+                        <button class="btn btn-info btn-sm" onclick="editKit(${originalIndex})">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteKit(${originalIndex})">🗑️ Delete</button>
+                    </td>
+                `;
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('kitModal').style.display = 'none';
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            loadKitsFromAPI();  // Load data from your Flask backend
+
+            
+            // Search functionality
+            document.getElementById('searchKitNo').addEventListener('input', filterTable);
+            document.getElementById('searchStationId').addEventListener('input', filterTable);
+            document.getElementById('searchOperator').addEventListener('input', filterTable);
+            
+            // Modal close functionality
+            document.querySelector('.close').addEventListener('click', closeModal);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('kitModal');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Form submission
+            document.getElementById('kitForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveKit();
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                addNewKit();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Auto-save functionality (simulated)
+        function autoSave() {
+            // This would typically save to localStorage or send to backend
+            // For demonstration, we'll just show a notification
+            console.log('Auto-saving data...', kitsData);
+        }
+
+        // Auto-save every 5 minutes
+        setInterval(autoSave, 300000);
+
+        // Validation functions
+        function validateKitNo(kitNo) {
+            return kitNo && kitNo.trim().length > 0;
+        }
+
+        function validateAadhaar(aadhaar) {
+            const aadhaarRegex = /^\d{4}-\d{4}-\d{4}$/;
+            return !aadhaar || aadhaarRegex.test(aadhaar);
+        }
+
+        function validateMobile(mobile) {
+            const mobileRegex = /^\d{10}$/;
+            return !mobile || mobileRegex.test(mobile);
+        }
+
+        // Enhanced form validation
+        function validateForm() {
+            const kitNo = document.getElementById('kitNo').value;
+            const aadhaar = document.getElementById('aadhaarNumber').value;
+            const mobile = document.getElementById('mobileNumber').value;
+
+            if (!validateKitNo(kitNo)) {
+                showNotification('Kit Number is required!', 'error');
+                return false;
+            }
+
+            if (!validateAadhaar(aadhaar)) {
+                showNotification('Aadhaar Number format should be XXXX-XXXX-XXXX', 'error');
+                return false;
+            }
+
+            if (!validateMobile(mobile)) {
+                showNotification('Mobile Number should be 10 digits', 'error');
+                return false;
+            }
+
+            // Check for duplicate Kit No (only when adding new)
+            if (editingIndex === -1) {
+                const existingKit = kitsData.find(kit => kit.kitNo === kitNo);
+                if (existingKit) {
+                    showNotification('Kit Number already exists!', 'error');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Update saveKit function to include validation
+        function saveKit() {
+            if (!validateForm()) {
+                return;
+            }
+
+            const formData = {
+                kitNo: document.getElementById('kitNo').value,
+                stationId: document.getElementById('stationId').value,
+                laptopSNo: document.getElementById('laptopSNo').value,
+                machineId: document.getElementById('machineId').value,
+                printer: document.getElementById('printer').value,
+                fingerprint: document.getElementById('fingerprint').value,
+                iris: document.getElementById('iris').value,
+                camera: document.getElementById('camera').value,
+                usbHub: document.getElementById('usbHub').value,
+                spike: document.getElementById('spike').value,
+                gpsDevice: document.getElementById('gpsDevice').value,
+                whiteBackground: document.getElementById('whiteBackground').value,
+                lampBulb: document.getElementById('lampBulb').value,
+                operatorName: document.getElementById('operatorName').value,
+                userCode: document.getElementById('userCode').value,
+                aadhaarNumber: document.getElementById('aadhaarNumber').value,
+                mobileNumber: document.getElementById('mobileNumber').value,
+                cheque: document.getElementById('cheque').value,
+                nseitCertificate: document.getElementById('nseitCertificate').value,
+                pvc: document.getElementById('pvc').value,
+                aadhaar: document.getElementById('aadhaar').value,
+                pan: document.getElementById('pan').value,
+                declaration: document.getElementById('declaration').value,
+                educationCertificate: document.getElementById('educationCertificate').value,
+                agreements: document.getElementById('agreements').value,
+                district: document.getElementById('district').value,
+                date: document.getElementById('date').value,
+                zonalCoordinator: document.getElementById('zonalCoordinator').value
+            };
+
+            if (editingIndex === -1) {
+                // Add new kit
+                formData.sNo = kitsData.length + 1;
+                kitsData.push(formData);
+                showNotification('Kit added successfully!', 'success');
+            } else {
+                // Update existing kit
+                formData.sNo = kitsData[editingIndex].sNo;
+                kitsData[editingIndex] = formData;
+                showNotification('Kit updated successfully!', 'success');
+            }
+
+            closeModal();
+            loadInventoryTable();
+            
+            // Auto-generate acknowledgement after saving
+            if (confirm('Kit saved successfully! Would you like to generate handover acknowledgement?')) {
+                if (editingIndex === -1) {
+                    printKit(kitsData.length - 1);
+                } else {
+                    printKit(editingIndex);
+                }
+            }
+        }
+
+        // Bulk operations
+        function bulkDelete() {
+            const checkboxes = document.querySelectorAll('.kit-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showNotification('No kits selected for deletion!', 'error');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${checkboxes.length} selected kits?`)) {
+                const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index)).sort((a, b) => b - a);
+                
+                indicesToDelete.forEach(index => {
+                    kitsData.splice(index, 1);
+                });
+                
+                // Reorder serial numbers
+                kitsData.forEach((kit, i) => kit.sNo = i + 1);
+                loadInventoryTable();
+                showNotification(`${indicesToDelete.length} kits deleted successfully!`, 'success');
+            }
+        }
+
+        // Data backup and restore
+        function backupData() {
+            const dataStr = JSON.stringify(kitsData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `kits_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showNotification('Data backup created successfully!', 'success');
+        }
+
+        function restoreData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const importedData = JSON.parse(e.target.result);
+                            if (Array.isArray(importedData)) {
+                                kitsData = importedData;
+                                loadInventoryTable();
+                                showNotification('Data restored successfully!', 'success');
+                            } else {
+                                showNotification('Invalid backup file format!', 'error');
+                            }
+                        } catch (error) {
+                            showNotification('Error reading backup file!', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        // Initialize tooltips and help text
+        function initializeHelp() {
+            const helpTexts = {
+                'kitNo': 'Unique identifier for each kit',
+                'stationId': 'Location or station where kit is deployed',
+                'aadhaarNumber': 'Format: XXXX-XXXX-XXXX',
+                'mobileNumber': '10-digit mobile number'
+            };
+
+            Object.keys(helpTexts).forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.title = helpTexts[fieldId];
+                }
+            });
+        }
+
+        // Call initialization functions
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeHelp();
+        });
+    </script>
+</body>
+</html>
