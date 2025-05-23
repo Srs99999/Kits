@@ -10,7 +10,7 @@ cursor = conn.cursor()
 
 # Create table with appropriate column names
 cursor.execute('''
-CREATE TABLE IF NOT EXISTS kits (
+CREATE TABLE IF NOT EXISTS kits_inventory (
     s_no INTEGER,
     kit_no TEXT,
     station_id TEXT,

@@ -22,8 +22,8 @@ df.columns = [
 # Connect to the SQLite database
 conn = sqlite3.connect(db_path)
 
-# Insert into the 'kits' table
-df.to_sql('kits', conn, if_exists='append', index=False)
+# Insert into the 'kits_inventory' table
+df.to_sql('kits_inventory', conn, if_exists='append', index=False)
 
 conn.close()
 
@@ -31,7 +31,7 @@ print("Data imported successfully into kits_inventory.db")
 # Verify the data import
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
-cursor.execute("SELECT COUNT(*) FROM kits")
+cursor.execute("SELECT COUNT(*) FROM kits_inventory")
 count = cursor.fetchone()[0]
 conn.close()
-print(f"Total records in 'kits' table: {count}")
+print(f"Total records in 'kits_inventory' table: {count}")

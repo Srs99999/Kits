@@ -8,12 +8,12 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///f:/Sai_Python/test_pd/kits_in
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-class Kit(db.Model):
-    __tablename__ = 'kits'
-    id = db.Column(db.Integer, primary_key=True)
+class KitsInventory(db.Model):
+    __tablename__ = 'kits_inventory'
+    s_no = db.Column(db.Integer, primary_key=True)
     kit_no = db.Column(db.String(100), unique=True, nullable=False)
     station_id = db.Column(db.String(100))
-    laptop_sno = db.Column(db.String(100))
+    laptop_sn = db.Column(db.String(100))
     machine_id = db.Column(db.String(100))
     printer = db.Column(db.String(100))
     fingerprint = db.Column(db.String(100))
@@ -37,18 +37,19 @@ class Kit(db.Model):
     education_certificate = db.Column(db.String(100))
     agreements = db.Column(db.String(100))
     district = db.Column(db.String(100))
-    date = db.Column(db.String(100))
+    appointment_date = db.Column(db.String(100))
     zonal_coordinator = db.Column(db.String(100))
 
-@app.route('/api/kits', methods=['GET'])
+@app.route('/api/kits_inventory', methods=['GET'])
 def get_all_kits():
-    kits = Kit.query.all()
+    kits = KitsInventory.query.all()
     data = []
     for kit in kits:
         data.append({
+            'sNo': kit.s_no,
             'kitNo': kit.kit_no,
             'stationId': kit.station_id,
-            'laptopSNo': kit.laptop_sno,
+            'laptopSn': kit.laptop_sn,
             'machineId': kit.machine_id,
             'printer': kit.printer,
             'fingerprint': kit.fingerprint,
@@ -72,7 +73,7 @@ def get_all_kits():
             'educationCertificate': kit.education_certificate,
             'agreements': kit.agreements,
             'district': kit.district,
-            'date': kit.date,
+            'appointmentDate': kit.appointment_date,
             'zonalCoordinator': kit.zonal_coordinator
         })
     return jsonify({'status': 'success', 'data': data})
@@ -82,12 +83,12 @@ def save_kit():
     data = request.get_json()
     if not data.get('kitNo'):
         return jsonify({'status': 'error', 'message': 'Kit Number is required'}), 400
-    if Kit.query.filter_by(kit_no=data['kitNo']).first():
+    if KitsInventory.query.filter_by(kit_no=data['kitNo']).first():
         return jsonify({'status': 'error', 'message': 'Kit Number already exists'}), 400
-    kit = Kit(
+    kit = KitsInventory(
         kit_no=data['kitNo'],
         station_id=data.get('stationId', ''),
-        laptop_sno=data.get('laptopSNo', ''),
+        laptop_sn=data.get('laptopSn', ''),
         machine_id=data.get('machineId', ''),
         printer=data.get('printer', ''),
         fingerprint=data.get('fingerprint', ''),
@@ -111,7 +112,7 @@ def save_kit():
         education_certificate=data.get('educationCertificate', ''),
         agreements=data.get('agreements', ''),
         district=data.get('district', ''),
-        date=data.get('date', ''),
+        appointment_date=data.get('appointmentDate', ''),
         zonal_coordinator=data.get('zonalCoordinator', '')
     )
     db.session.add(kit)
@@ -120,14 +121,14 @@ def save_kit():
 
 @app.route('/', methods=['GET'])
 def index():
-    kits = Kit.query.all()
+    kits = KitsInventory.query.all()
     kits_data = []
-    for idx, kit in enumerate(kits, start=1):
+    for kit in kits:
         kits_data.append({
-            'sNo': idx,
+            'sNo': kit.s_no,
             'kitNo': kit.kit_no,
             'stationId': kit.station_id,
-            'laptopSNo': kit.laptop_sno,
+            'laptopSn': kit.laptop_sn,
             'machineId': kit.machine_id,
             'printer': kit.printer,
             'fingerprint': kit.fingerprint,
@@ -151,7 +152,7 @@ def index():
             'educationCertificate': kit.education_certificate,
             'agreements': kit.agreements,
             'district': kit.district,
-            'date': kit.date,
+            'appointmentDate': kit.appointment_date,
             'zonalCoordinator': kit.zonal_coordinator
         })
     return render_template('kits_inventory.html', kitsData=kits_data)
@@ -164,7 +165,7 @@ def bulk_delete_kits():
         return jsonify({'status': 'error', 'message': 'No kit numbers provided'}), 400
     deleted = 0
     for kit_no in kit_nos:
-        kit = Kit.query.filter_by(kit_no=kit_no).first()
+        kit = KitsInventory.query.filter_by(kit_no=kit_no).first()
         if kit:
             db.session.delete(kit)
             deleted += 1
@@ -181,50 +182,12 @@ def internal_error(error):
 
 @app.route('/debug/print_kits')
 def debug_print_kits():
-    kits = Kit.query.all()
+    kits = KitsInventory.query.all()
     if not kits:
         return "No kits found in the database."
     for kit in kits:
         print(vars(kit))
     return "Kits printed to console."
-
-def migrate_kits_excel_to_db(excel_path):
-    df = pd.read_excel(excel_path, engine="openpyxl")
-    for _, row in df.iterrows():
-        if not Kit.query.filter_by(kit_no=str(row.get('Kit No', '')).strip()).first():
-            kit = Kit(
-                kit_no=str(row.get('Kit No', '')),
-                station_id=str(row.get('Station ID', '')),
-                laptop_sno=str(row.get('Laptop S/No', '')),
-                machine_id=str(row.get('Machine ID', '')),
-                printer=str(row.get('Printer', '')),
-                fingerprint=str(row.get('Fingerprint', '')),
-                iris=str(row.get('Iris', '')),
-                camera=str(row.get('Camera', '')),
-                usb_hub=str(row.get('USB Hub', '')),
-                spike=str(row.get('Spike', '')),
-                gps_device=str(row.get('GPS device', '')),
-                white_background=str(row.get('White Background', '')),
-                lamp_bulb=str(row.get('Lamp & Bulb', '')),
-                operator_name=str(row.get('Operator Name', '')),
-                user_code=str(row.get('User Code As Per Credentials', '')),
-                aadhaar_number=str(row.get('Aadhaar Number', '')),
-                mobile_number=str(row.get('Mobile Number', '')),
-                cheque=str(row.get('Cheque', '')),
-                nseit_certificate=str(row.get('Nseit Certificate', '')),
-                pvc=str(row.get('PVC', '')),
-                aadhaar=str(row.get('Aadhaar', '')),
-                pan=str(row.get('Pan', '')),
-                declaration=str(row.get('Declaration', '')),
-                education_certificate=str(row.get('Education Certificate', '')),
-                agreements=str(row.get('Agreements', '')),
-                district=str(row.get('District', '')),
-                date=str(row.get('Date', '')),
-                zonal_coordinator=str(row.get('Zonal coordinator', ''))
-            )
-            db.session.add(kit)
-    db.session.commit()
-    print("Excel data migrated to kits_inventory.db")
 
 if __name__ == '__main__':
     with app.app_context():
