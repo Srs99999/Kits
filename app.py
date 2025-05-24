@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 # 1  Pick the DB location: use Render’s persistent disk if DATABASE_URL is set,
 #    otherwise fall back to a local file in ./data/
-DEFAULT_LOCAL_DB = "sqlite:///data/kits_inventory.db"
+DEFAULT_LOCAL_DB = "sqlite:////data/kits_inventory.db"
 DB_URI = os.environ.get("DATABASE_URL", DEFAULT_LOCAL_DB)
 app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
