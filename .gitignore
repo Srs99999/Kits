@@ -1,0 +1,25 @@
+# Byte-code / editor junk
+*.py[cod]/
+__pycache__/
+*.swp
+.vscode/
+.idea/
+.env
+*.log
+
+# Virtual-envs
+venv/
+.env*/      # pipenv / poetry
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data & DB
+data/
+*.sqlite*
+*.db
+
+# Output files
+*.xlsx
+*.pdf

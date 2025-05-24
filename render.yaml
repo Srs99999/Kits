@@ -1,0 +1,23 @@
+services:
+- type: web
+  name: kits-inventory
+  env: python
+  region: oregon       # or frankfurt/singapore if closer
+  plan: starter        # free is fine for testing
+  branch: main
+  buildCommand: |
+    pip install -r requirements.txt
+  startCommand: |
+    gunicorn app:app -b 0.0.0.0:10000
+  numInstances: 1
+  healthCheckPath: /
+  disk:
+    name: data-disk
+    mountPath: /data
+    sizeGB: 1          # enough for SQLite & uploads
+
+envVars:
+- key: FLASK_APP       # optional, used locally
+  value: app.py
+- key: DATABASE_URL
+  value: sqlite:////data/kits_inventory.db   # four slashes = absolute path
