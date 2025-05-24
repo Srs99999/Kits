@@ -9,7 +9,7 @@ import pandas as pd
 from io import BytesIO
 
 # Get the database URI from the environment variable, with a fallback to a local SQLite file
-DB_URI = os.environ.get("DATABASE_URL", "sqlite:///data/kits_inventory.db")
+DB_URI = os.environ.get("DATABASE_URL", "sqlite:////data/kits_inventory.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = DB_URI
 
 app = Flask(__name__)
